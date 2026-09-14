@@ -100,7 +100,10 @@ Return STRICT JSON only:
 }
 `;
 
-function callGemini(base64Data, mimeType, modelName = 'gemini-1.5-flash', retries = 3, delay = 2000) {
+function callGemini(base64Data, mimeType, modelIndex = 0, retries = 2, delay = 1500) {
+  const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'];
+  const modelName = models[modelIndex] || 'gemini-1.5-flash';
+
   return new Promise((resolve, reject) => {
     const postData = JSON.stringify({
       contents: [
@@ -148,14 +151,14 @@ function callGemini(base64Data, mimeType, modelName = 'gemini-1.5-flash', retrie
                 reject(new Error('فشل في تحليل بيانات الاستجابة: ' + err.message));
               }
             } else if ((res.statusCode === 503 || res.statusCode === 429) && attempt < retries) {
-              console.warn(`⚠️ الخادم مشغول (${res.statusCode}). إعادة المحاولة ${attempt + 1}/${retries} بعد ${currentDelay}ms...`);
+              console.warn(`⚠️ الموديل ${modelName} مشغول (${res.statusCode}). إعادة المحاولة ${attempt + 1}/${retries}...`);
               setTimeout(() => {
                 executeRequest(attempt + 1, currentDelay * 2);
               }, currentDelay);
             } else {
-              if (modelName === 'gemini-1.5-flash') {
-                console.log('🔄 المحاولة بالموديل الاحتياطي gemini-1.5-pro...');
-                callGemini(base64Data, mimeType, 'gemini-1.5-pro', retries, delay)
+              if (modelIndex < models.length - 1) {
+                console.log(`🔄 الانتقال للموديل البديل: ${models[modelIndex + 1]}...`);
+                callGemini(base64Data, mimeType, modelIndex + 1, retries, delay)
                   .then(resolve)
                   .catch(reject);
               } else {
