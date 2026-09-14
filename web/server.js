@@ -156,13 +156,14 @@ function callGemini(base64Data, mimeType, modelIndex = 0, retries = 2, delay = 1
                 executeRequest(attempt + 1, currentDelay * 2);
               }, currentDelay);
             } else {
+              console.error(`❌ فشل طلب Gemini (${modelName}) - الحالة: ${res.statusCode}:`, body.slice(0, 300));
               if (modelIndex < models.length - 1) {
-                console.log(`🔄 الانتقال للموديل البديل: ${models[modelIndex + 1]}...`);
+                console.log(`🔄 الانتقال التلقائي للموديل البديل: ${models[modelIndex + 1]}...`);
                 callGemini(base64Data, mimeType, modelIndex + 1, retries, delay)
                   .then(resolve)
                   .catch(reject);
               } else {
-                reject(new Error('الخدمة تشهد ضغطاً عالياً حالياً، يرجى إعادة المحاولة بعد بضع ثوانٍ.'));
+                reject(new Error('الخدمة تشهد ضغطاً عالياً حالياً، يرجى إعادة المحاولة بعد ثوانٍ.'));
               }
             }
           });
@@ -304,4 +305,4 @@ server.listen(PORT, () => {
   console.log(`🤖  محرك الفحص السيبراني الذكي متصل`);
   console.log(`🔗  الرابط: http://localhost:${PORT}`);
   console.log(`======================================================\n`);
-});
+});س
