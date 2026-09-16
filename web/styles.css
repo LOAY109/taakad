@@ -7,15 +7,15 @@
 
   --color-emerald: #10B981;
   --color-emerald-glow: rgba(16, 185, 129, 0.4);
-  --color-alert-red: #EF4444;
-  --color-alert-glow: rgba(239, 68, 68, 0.35);
+  --color-alert-red: #F26565;
+  --color-alert-glow: rgba(242, 101, 101, 0.35);
   --color-warm-amber: #F59E0B;
   --color-amber-glow: rgba(245, 158, 11, 0.35);
   --color-cyan: #38BDF8;
 
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --text-muted: #7C8BA1;
 
   --header-bg: rgba(10, 15, 29, 0.9);
   --shadow-main: 0 10px 30px rgba(0, 0, 0, 0.4);
@@ -35,13 +35,13 @@
   --border-color: #CBD5E1;
   --border-light: #E2E8F0;
 
-  --color-emerald: #059669;
-  --color-emerald-glow: rgba(5, 150, 105, 0.25);
+  --color-emerald: #047857;
+  --color-emerald-glow: rgba(4, 120, 87, 0.25);
   --color-alert-red: #DC2626;
   --color-alert-glow: rgba(220, 38, 38, 0.2);
-  --color-warm-amber: #D97706;
-  --color-amber-glow: rgba(217, 119, 6, 0.2);
-  --color-cyan: #0284C7;
+  --color-warm-amber: #B45309;
+  --color-amber-glow: rgba(180, 83, 9, 0.2);
+  --color-cyan: #0369A1;
 
   --text-primary: #0F172A;
   --text-secondary: #334155;
@@ -100,22 +100,26 @@ body {
 /* In-App Floating Cyber Toast Notification */
 .cyber-toast {
   position: fixed;
-  top: -80px;
+  top: max(16px, env(safe-area-inset-top, 0px));
   left: 50%;
-  transform: translateX(-50%);
+  /* translate by the toast own height, so it clears the viewport at any size */
+  transform: translate(-50%, calc(-100% - 32px));
+  opacity: 0;
+  max-width: min(92vw, 460px);
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid #38BDF8;
   border-radius: 999px;
-  padding: 10px 22px;
+  padding: 10px 14px 10px 22px;
   display: flex;
   align-items: center;
   gap: 10px;
   color: #FFFFFF;
   font-size: 0.88rem;
   font-weight: 700;
+  line-height: 1.5;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.3);
   z-index: 500;
-  transition: top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
   pointer-events: none;
 }
 [data-theme="light"] .cyber-toast {
@@ -123,8 +127,36 @@ body {
   color: #FFFFFF;
 }
 .cyber-toast.active {
-  top: 24px;
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
 }
+.toast-close {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: -6px 0 -6px 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.toast-close:hover { background: rgba(255, 255, 255, 0.14); color: #FFFFFF; }
+/* keep the 44px tap area without inflating the pill */
+.toast-close::after {
+  content: "";
+  position: absolute;
+  width: var(--tap-target, 44px);
+  height: var(--tap-target, 44px);
+}
+
 .toast-icon {
   color: #38BDF8;
   display: flex;
@@ -168,9 +200,9 @@ body {
 .brand-text h1 {
   font-size: 1.4rem;
   font-weight: 900;
-  letter-spacing: -0.5px;
+  letter-spacing: normal;
   color: var(--text-primary);
-  line-height: 1.1;
+  line-height: 1.35;
 }
 .brand-text .tagline {
   font-size: 0.76rem;
@@ -341,12 +373,15 @@ body {
   font-size: 2.5rem;
   font-weight: 900;
   margin-bottom: 8px;
-  letter-spacing: -0.5px;
+  letter-spacing: normal;
+  line-height: 1.35;
+  text-wrap: balance;
 }
 .hero-desc {
   font-size: 1.02rem;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.75;
+  text-wrap: pretty;
   margin-bottom: 24px;
 }
 
@@ -425,6 +460,8 @@ body {
   font-size: 1.25rem;
   font-weight: 800;
   margin-bottom: 6px;
+  line-height: 1.5;
+  text-wrap: balance;
 }
 .dropzone-hint {
   font-size: 0.88rem;
@@ -445,6 +482,7 @@ body {
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 /* Info Guide Section */
@@ -1181,7 +1219,7 @@ body {
 
 .elements-toggle-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 10px;
 }
 .element-toggle-row {
@@ -1644,4 +1682,305 @@ button {
 [data-theme="light"] .app-footer {
   background: #FFFFFF;
   border-color: #E2E8F0;
+}
+
+
+/* =====================================================================
+   ACCESSIBILITY, TOUCH TARGETS & PHONE LAYOUT
+   ===================================================================== */
+
+:root { --tap-target: 44px; }
+
+/* ---- Skip link ---------------------------------------------------- */
+.skip-link {
+  position: absolute;
+  right: 12px;
+  top: -100px;
+  z-index: 200;
+  background: var(--color-emerald);
+  color: #04120C;
+  font-family: var(--font-family);
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+.skip-link:focus { top: 12px; }
+
+/* ---- Focus rings --------------------------------------------------
+   Previously only one text input had a :focus style, and the range
+   sliders cleared their outline with no replacement.                */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-cyan);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+.cyber-range-slider:focus-visible {
+  outline: 3px solid var(--color-cyan);
+  outline-offset: 4px;
+}
+.switch-wrap input:focus-visible,
+.card-check-label input:focus-visible {
+  outline: none;
+}
+.switch-wrap input:focus-visible + .slider,
+.card-check-label input:focus-visible + .check-box-visual {
+  outline: 3px solid var(--color-cyan);
+  outline-offset: 3px;
+}
+.upload-dropzone:focus-within,
+.detection-item-card:focus-visible {
+  outline: 3px solid var(--color-cyan);
+  outline-offset: 4px;
+}
+.color-swatch:focus-visible,
+.btn-preset-text:focus-visible {
+  outline: 3px solid var(--color-cyan);
+  outline-offset: 3px;
+}
+
+/* ---- Touch targets -------------------------------------------------
+   The redaction switch was 42x22 and the report checkbox 20x20, both
+   under the 44x44 minimum. The visual grows a little; the rest is
+   made up with a transparent hit-area expander.                      */
+.switch-wrap {
+  width: 52px;
+  height: 30px;
+}
+.slider:before {
+  height: 24px;
+  width: 24px;
+  left: 3px;
+  bottom: 3px;
+}
+input:checked + .slider:before { transform: translateX(22px); }
+.switch-wrap::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: var(--tap-target);
+  min-width: var(--tap-target);
+}
+
+.card-check-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-target);
+  min-height: var(--tap-target);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.card-check-label input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.check-box-visual {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+.check-box-visual::after {
+  content: "";
+  width: 6px;
+  height: 11px;
+  border: solid #04120C;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.card-check-label input:checked + .check-box-visual {
+  background: var(--color-emerald);
+  border-color: var(--color-emerald);
+}
+.card-check-label input:checked + .check-box-visual::after { opacity: 1; }
+[data-theme="light"] .check-box-visual::after { border-color: #FFFFFF; }
+
+/* ---- Keyboard-operable surfaces ----------------------------------- */
+/* .item-check is a flex child with no rule of its own; stop it shrinking
+   the 44px label back below the minimum on narrow cards. */
+.item-check {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.detection-item-card { cursor: pointer; }
+.upload-dropzone { cursor: pointer; }
+
+/* ---- Light mode: emerald was darkened for text contrast, so text
+        sitting ON emerald has to flip to white --------------------- */
+[data-theme="light"] .step-node.active .step-num,
+[data-theme="light"] .btn-primary-glow,
+[data-theme="light"] .skip-link { color: #FFFFFF; }
+
+/* ---- Reduced motion ------------------------------------------------
+   pulse, radarSpin and pulseMove all ran infinitely, including for
+   the whole duration of the scan modal.                              */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .radar-sweep,
+  .progress-fill-pulsing,
+  .pulse-dot {
+    animation: none !important;
+  }
+  .progress-fill-pulsing {
+    width: 100%;
+    opacity: 0.55;
+  }
+  .pulse-dot { opacity: 1; }
+  .btn-primary-glow:hover { transform: none; }
+}
+
+/* =====================================================================
+   PHONE LAYOUT  (the smallest breakpoint used to be 820px)
+   ===================================================================== */
+
+@media (max-width: 640px) {
+  .main-content { padding: 8px 14px 32px; }
+
+  .stepper-bar { padding: 0 4px; margin: 14px auto 12px; }
+  /* Three long labels will not fit side by side on a phone, so show only
+     the label for the step the user is actually on. */
+  .step-label { display: none; }
+  .step-node.active .step-label {
+    display: inline;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+  .step-line { min-width: 12px; }
+
+  .view-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .view-title { font-size: 1.1rem; }
+  .hero-title { font-size: 1.6rem; }
+  .hero-desc { font-size: 0.9rem; }
+
+  /* Every control reaches the 44px minimum */
+  .btn-primary-glow,
+  .btn-secondary,
+  .btn-tool-action,
+  .btn-ghost-sm,
+  .btn-page-nav,
+  .btn-toggle-view,
+  .mode-pill,
+  .btn-preset-text,
+  .btn-text-action {
+    min-height: var(--tap-target);
+  }
+  .color-swatch { min-width: 40px; min-height: 40px; }
+
+  .export-actions-bar { flex-direction: column; gap: 10px; }
+  .btn-large { width: 100%; flex: none; }
+  .export-actions-bar > button { width: 100%; }
+
+  .mode-selector-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .mode-pills { width: 100%; }
+  .mode-pill { flex: 1 1 100%; justify-content: center; }
+
+  .fine-tuning-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .tool-btn-group { width: 100%; }
+  .tool-btn-group > button { flex: 1; justify-content: center; }
+
+  .custom-text-input-wrap { flex-direction: column; align-items: stretch; gap: 8px; }
+  .custom-text-input { width: 100%; }
+
+  .pdf-pagination-bar { flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+  .inspector-card,
+  .redaction-preview-card,
+  .selective-controls-card,
+  .customization-studio-card { padding: 12px; }
+
+  .canvas-viewport { min-height: 200px; max-height: 58vh; }
+  .canvas-viewport canvas { max-height: 58vh; }
+
+  .controls-header-row { flex-direction: column; align-items: stretch; gap: 8px; }
+  .list-header-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+
+  /* Readability floor: several labels sat at 11-12px */
+  .canvas-tip,
+  .dropzone-hint,
+  .slider-end-label,
+  .slider-tip-text,
+  .hint-text,
+  .hint-edit-box,
+  .page-indicator,
+  .type-tag,
+  .app-footer p { font-size: 0.8125rem; }
+}
+
+@media (max-width: 400px) {
+  .main-content { padding: 8px 12px 28px; }
+  .hero-title { font-size: 1.35rem; }
+  .element-toggle-row { padding: 10px; gap: 8px; }
+  .type-category-badge { font-size: 0.7rem; }
+  .brand-text h1 { font-size: 1.25rem; }
+  .theme-btn-label { display: none; }
+  .theme-toggle-btn {
+    min-width: var(--tap-target);
+    min-height: var(--tap-target);
+    justify-content: center;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   ARABIC TYPOGRAPHY
+   Cairo is a connected script: it needs more leading than a Latin face
+   at the same size, and never negative tracking. Headings previously
+   inherited ~1.2 leading and two of them carried letter-spacing:-0.5px.
+   --------------------------------------------------------------------- */
+h1, h2, h3, h4, h5 {
+  line-height: 1.45;
+  text-wrap: balance;
+}
+p, .hero-desc, .dropzone-hint, .purpose-text, .slider-tip-text, .canvas-tip {
+  text-wrap: pretty;
+}
+.step-item p,
+.purpose-text,
+.dropzone-hint {
+  line-height: 1.7;
+}
+
+@media (max-width: 640px) {
+  .cyber-toast {
+    max-width: calc(100vw - 24px);
+    border-radius: var(--radius-lg);
+    font-size: 0.85rem;
+    text-align: right;
+  }
 }

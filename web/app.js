@@ -122,6 +122,7 @@ const themeToggleText = document.getElementById('themeToggleText');
 // In-App Toast
 const toastNotification = document.getElementById('toastNotification');
 const toastMessage = document.getElementById('toastMessage');
+const toastCloseBtn = document.getElementById('toastCloseBtn');
 
 let timerInterval = null;
 let scanStartTime = 0;
@@ -130,15 +131,46 @@ let toastTimeout = null;
 // =============================================
 // TOAST NOTIFICATION
 // =============================================
+const TOAST_DEFAULT_MS = 2600;
+
+function hideToast() {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
+  if (toastNotification) toastNotification.classList.remove('active');
+}
+
 function showToast(message, durationMs) {
   if (!toastNotification || !toastMessage) return;
   if (toastTimeout) clearTimeout(toastTimeout);
   toastMessage.textContent = message;
   toastNotification.classList.add('active');
-  const dur = durationMs || 4000;
-  toastTimeout = setTimeout(() => {
-    toastNotification.classList.remove('active');
-  }, dur);
+  const dur = durationMs || TOAST_DEFAULT_MS;
+  toastTimeout = setTimeout(hideToast, dur);
+}
+
+function setupToast() {
+  if (toastCloseBtn) toastCloseBtn.addEventListener('click', hideToast);
+  if (toastNotification) {
+    // hold it open while the pointer is on it, so a message is not lost mid-read
+    toastNotification.addEventListener('mouseenter', () => {
+      if (toastTimeout) {
+        clearTimeout(toastTimeout);
+        toastTimeout = null;
+      }
+    });
+    toastNotification.addEventListener('mouseleave', () => {
+      if (toastNotification.classList.contains('active')) {
+        toastTimeout = setTimeout(hideToast, 1200);
+      }
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && toastNotification && toastNotification.classList.contains('active')) {
+      hideToast();
+    }
+  });
 }
 
 // =============================================
@@ -171,6 +203,7 @@ function initTheme() {
 // =============================================
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  setupToast();
   setupEventListeners();
   setupCustomizationStudio();
 });
@@ -224,11 +257,24 @@ function setupEventListeners() {
     });
   }
 
-  dropZone.addEventListener('click', () => fileInput.click());
+  // The file input is an invisible overlay covering the whole dropzone, so a
+  // click on it already opens the picker natively. Only forward clicks that
+  // somehow land outside the input; forwarding all of them opened it twice.
+  dropZone.addEventListener('click', (e) => {
+    if (e.target === fileInput) return;
+    fileInput.click();
+  });
   fileInput.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
-    }
+    const file = e.target.files && e.target.files[0];
+    // Clear the selection so choosing the same file again still fires change.
+    e.target.value = '';
+    if (!file) return;
+    Promise.resolve()
+      .then(() => handleFile(file))
+      .catch((err) => {
+        console.error('File handling error:', err);
+        showToast('تعذر فتح الملف: ' + (err && err.message ? err.message : err), 4000);
+      });
   });
 
   dropZone.addEventListener('dragover', (e) => {
@@ -239,15 +285,21 @@ function setupEventListeners() {
   dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropZone.classList.remove('drag-over');
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
-    }
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!file) return;
+    Promise.resolve()
+      .then(() => handleFile(file))
+      .catch((err) => {
+        console.error('File handling error:', err);
+        showToast('تعذر فتح الملف: ' + (err && err.message ? err.message : err), 4000);
+      });
   });
 
   if (drawManualBoxBtn) {
     drawManualBoxBtn.addEventListener('click', () => {
       state.isDrawingManual = !state.isDrawingManual;
       drawManualBoxBtn.classList.toggle('active', state.isDrawingManual);
+      drawManualBoxBtn.setAttribute('aria-pressed', String(state.isDrawingManual));
       drawManualBoxBtn.querySelector('span').textContent = state.isDrawingManual ? 'إلغاء وضع الرسم' : 'رسم صندوق حجب جديد';
       analysisCanvas.style.cursor = state.isDrawingManual ? 'crosshair' : 'default';
     });
@@ -258,8 +310,12 @@ function setupEventListeners() {
   // Mode Selector pills (Blackout, Blur, Pixelate)
   document.querySelectorAll('.mode-pill').forEach((btn) => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.mode-pill').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.mode-pill').forEach((b) => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       state.redactionMode = btn.getAttribute('data-mode');
       updateStudioPanelsVisibility();
       renderRedactionCanvas();
@@ -269,6 +325,7 @@ function setupEventListeners() {
   if (toggleOriginalBtn) {
     toggleOriginalBtn.addEventListener('click', () => {
       state.showOriginal = !state.showOriginal;
+      toggleOriginalBtn.setAttribute('aria-pressed', String(state.showOriginal));
       toggleOriginalBtn.textContent = state.showOriginal ? 'استعراض المحمي' : 'استعراض الأصل';
       renderRedactionCanvas();
     });
@@ -315,8 +372,12 @@ function setupCustomizationStudio() {
   // Color swatches
   document.querySelectorAll('.color-swatch').forEach((swatch) => {
     swatch.addEventListener('click', () => {
-      document.querySelectorAll('.color-swatch').forEach((s) => s.classList.remove('active'));
+      document.querySelectorAll('.color-swatch').forEach((s) => {
+        s.classList.remove('active');
+        s.setAttribute('aria-pressed', 'false');
+      });
       swatch.classList.add('active');
+      swatch.setAttribute('aria-pressed', 'true');
       state.blackoutColor = swatch.getAttribute('data-color');
       const customInput = document.getElementById('customColorInput');
       if (customInput) customInput.value = state.blackoutColor;
@@ -329,7 +390,10 @@ function setupCustomizationStudio() {
   if (customColorInput) {
     customColorInput.addEventListener('input', (e) => {
       state.blackoutColor = e.target.value;
-      document.querySelectorAll('.color-swatch').forEach((s) => s.classList.remove('active'));
+      document.querySelectorAll('.color-swatch').forEach((s) => {
+        s.classList.remove('active');
+        s.setAttribute('aria-pressed', 'false');
+      });
       renderRedactionCanvas();
     });
   }
@@ -337,8 +401,12 @@ function setupCustomizationStudio() {
   // Watermark presets
   document.querySelectorAll('.btn-preset-text').forEach((btn) => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.btn-preset-text').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.btn-preset-text').forEach((b) => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       const txt = btn.getAttribute('data-text');
       state.watermarkText = txt === 'NONE' ? '' : txt;
       const customTextInput = document.getElementById('customWatermarkTextInput');
@@ -354,7 +422,10 @@ function setupCustomizationStudio() {
       const input = document.getElementById('customWatermarkTextInput');
       if (input && input.value.trim()) {
         state.watermarkText = input.value.trim();
-        document.querySelectorAll('.btn-preset-text').forEach((b) => b.classList.remove('active'));
+        document.querySelectorAll('.btn-preset-text').forEach((b) => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         renderRedactionCanvas();
         showToast('تم تطبيق النص المخصص بنجاح.');
       } else {
@@ -395,8 +466,17 @@ function setupCustomizationStudio() {
 // =============================================
 // REAL-TIME STOPWATCH TIMER
 // =============================================
+let scanReturnFocusEl = null;
+
 function startRealtimeTimer() {
+  scanReturnFocusEl = document.activeElement;
   scanningModal.classList.add('active');
+  // aria-modal only means something if focus is actually inside the dialog
+  const scanCard = scanningModal.querySelector('.scanning-modal-card');
+  if (scanCard) {
+    scanCard.setAttribute('tabindex', '-1');
+    scanCard.focus({ preventScroll: true });
+  }
   scanStartTime = Date.now();
   liveElapsedTimer.textContent = '00:00.0';
 
@@ -445,6 +525,10 @@ function stopRealtimeTimer() {
 
   setTimeout(() => {
     scanningModal.classList.remove('active');
+    if (scanReturnFocusEl && typeof scanReturnFocusEl.focus === 'function') {
+      scanReturnFocusEl.focus({ preventScroll: true });
+    }
+    scanReturnFocusEl = null;
   }, 350);
 }
 
@@ -465,6 +549,11 @@ function switchStep(step) {
   nodeStep2.classList.toggle('completed', step > 2);
 
   nodeStep3.classList.toggle('active', step === 3);
+
+  [nodeStep1, nodeStep2, nodeStep3].forEach((node, i) => {
+    if (i + 1 === step) node.setAttribute('aria-current', 'step');
+    else node.removeAttribute('aria-current');
+  });
 
   line1.classList.toggle('active', step >= 2);
   line2.classList.toggle('active', step >= 3);
@@ -633,9 +722,18 @@ async function handleFile(file) {
 // =============================================
 function handleImageFile(file) {
   const reader = new FileReader();
+  reader.onerror = () => {
+    showToast('تعذر قراءة الملف من الجهاز.', 4000);
+  };
   reader.onload = (e) => {
     const img = new Image();
+    img.onerror = () => {
+      showToast('تعذر فك ترميز الصورة — جرّب ملفاً بصيغة PNG أو JPG.', 4000);
+    };
     img.onload = () => {
+      // fresh document: drop any selection or draw-mode left over from the last one
+      state.selectedItemId = null;
+      state.isDrawingManual = false;
       state.documentType = 'image';
       state.documentName = file.name.replace(/\.[^/.]+$/, '');
       state.image = img;
@@ -751,7 +849,7 @@ async function handlePdfFile(file) {
   } catch (err) {
     console.error('PDF processing error:', err);
     stopRealtimeTimer();
-    showToast('حدث خطأ أثناء معالجة ملف PDF: ' + err.message, 6000);
+    showToast('حدث خطأ أثناء معالجة ملف PDF: ' + err.message, 4000);
   }
 }
 
@@ -823,7 +921,7 @@ async function handleDocxFile(file) {
   } catch (err) {
     console.error('Word processing error:', err);
     stopRealtimeTimer();
-    showToast('حدث خطأ أثناء معالجة ملف Word: ' + err.message, 6000);
+    showToast('حدث خطأ أثناء معالجة ملف Word: ' + err.message, 4000);
   }
 }
 
@@ -962,7 +1060,7 @@ async function startScanProcess() {
   } catch (err) {
     console.error('Scan error:', err);
     stopRealtimeTimer();
-    showToast('حدث خطأ أثناء فحص الصورة: ' + err.message, 6000);
+    showToast('حدث خطأ أثناء فحص الصورة: ' + err.message, 4000);
   }
 }
 
@@ -1427,12 +1525,15 @@ function renderDetectionCards() {
     const card = document.createElement('div');
     const riskClass = item.isRecommendedOnly ? 'moderate recommended-card' : item.riskLevel.toLowerCase();
     card.className = 'detection-item-card ' + riskClass + (state.selectedItemId === item.id ? ' selected' : '');
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-pressed', String(state.selectedItemId === item.id));
 
     const categoryTag = getCategoryTag(item.dataType);
     let riskBadgeText = item.isRecommendedOnly ? 'نوصي بحجب هذا' : 'خطر عالي — محجوب تلقائياً';
 
     const textHtml = item.text
-      ? `<div style="font-size:0.75rem;color:var(--text-muted);font-family:monospace;direction:ltr;text-align:right;">${escapeHtml(item.text)}</div>`
+      ? `<div style="font-size:0.8125rem;color:var(--text-secondary);font-family:monospace;direction:ltr;text-align:right;">${escapeHtml(item.text)}</div>`
       : '';
 
     card.innerHTML = `
@@ -1444,12 +1545,15 @@ function renderDetectionCards() {
         ${textHtml}
       </div>
       <div class="item-check">
-        <input type="checkbox" ${item.isSelectedForRedaction ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--color-emerald);cursor:pointer;" title="تفعيل / إيقاف الحجب">
+        <label class="card-check-label">
+          <input type="checkbox" ${item.isSelectedForRedaction ? 'checked' : ''}
+                 aria-label="${escapeHtml('تفعيل أو إيقاف حجب: ' + item.dataTypeArabic)}">
+          <span class="check-box-visual" aria-hidden="true"></span>
+        </label>
       </div>
     `;
 
-    card.addEventListener('click', (e) => {
-      if (e.target.tagName === 'INPUT') return;
+    const activateCard = () => {
       state.selectedItemId = state.selectedItemId === item.id ? null : item.id;
       if (item.adviceArabic) {
         activeAdviceText.textContent = item.adviceArabic;
@@ -1457,6 +1561,25 @@ function renderDetectionCards() {
       updateSelectedBoxHint();
       drawAnalysisCanvas();
       renderDetectionCards();
+      // the list is rebuilt above, so put focus back on the same card
+      const again = detectionCardsList.querySelector('[data-item-id="' + item.id + '"]');
+      if (again) again.focus({ preventScroll: true });
+    };
+
+    card.dataset.itemId = item.id;
+
+    card.addEventListener('click', (e) => {
+      // the checkbox and its label own their own clicks
+      if (e.target.closest('.card-check-label')) return;
+      activateCard();
+    });
+
+    card.addEventListener('keydown', (e) => {
+      if (e.target !== card) return;
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        activateCard();
+      }
     });
 
     const checkbox = card.querySelector('input');
@@ -1743,10 +1866,12 @@ function renderElementsToggleList() {
   sorted.forEach((item) => {
     const row = document.createElement('div');
     row.className = 'element-toggle-row';
+    row.setAttribute('role', 'listitem');
+    row.dataset.itemId = item.id;
     const categoryTag = getCategoryTag(item.dataType);
 
     const textHtml = item.text
-      ? `<div style="font-size:0.75rem;color:var(--text-muted);font-family:monospace;">${escapeHtml(item.text)}</div>`
+      ? `<div style="font-size:0.8125rem;color:var(--text-secondary);font-family:monospace;">${escapeHtml(item.text)}</div>`
       : '';
 
     const statusColor = item.isSelectedForRedaction ? 'var(--color-emerald)' : 'var(--color-alert-red)';
@@ -1763,8 +1888,9 @@ function renderElementsToggleList() {
         </div>
       </div>
       <label class="switch-wrap">
-        <input type="checkbox" ${item.isSelectedForRedaction ? 'checked' : ''}>
-        <span class="slider"></span>
+        <input type="checkbox" ${item.isSelectedForRedaction ? 'checked' : ''}
+               aria-label="${escapeHtml('حجب ' + item.dataTypeArabic)}">
+        <span class="slider" aria-hidden="true"></span>
       </label>
     `;
 
@@ -1773,6 +1899,9 @@ function renderElementsToggleList() {
       item.isSelectedForRedaction = e.target.checked;
       renderRedactionCanvas();
       renderElementsToggleList();
+      // the list is rebuilt above, so put focus back on the same switch
+      const again = elementsToggleList.querySelector('[data-item-id="' + item.id + '"] input');
+      if (again) again.focus({ preventScroll: true });
     });
 
     elementsToggleList.appendChild(row);
@@ -1860,7 +1989,7 @@ async function downloadProtectedPdf() {
     showToast('تم تحميل مستند PDF المحمي بنجاح!');
   } catch (err) {
     console.error('PDF export error:', err);
-    showToast('فشل إنشاء ملف PDF: ' + err.message, 5000);
+    showToast('فشل إنشاء ملف PDF: ' + err.message, 4000);
   }
 }
 
