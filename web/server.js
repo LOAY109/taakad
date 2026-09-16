@@ -5,7 +5,57 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = __dirname;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDorl9HmOa_w8dgxFx7BCflWFEiTJuSfxU';
+
+// Node does not read .env files by itself. Load one if present (no dependency),
+// but never override variables the host already set in the real environment.
+function loadDotEnv() {
+  const candidates = [
+    path.join(__dirname, '..', '.env'), // repo root  (npm start)
+    path.join(__dirname, '.env'),       // web/       (node server.js from web/)
+  ];
+  for (const file of candidates) {
+    let text;
+    try {
+      text = fs.readFileSync(file, 'utf8');
+    } catch (_) {
+      continue;
+    }
+    for (const raw of text.split(/\r?\n/)) {
+      const line = raw.trim();
+      if (!line || line.startsWith('#')) continue;
+      const eq = line.indexOf('=');
+      if (eq === -1) continue;
+      const key = line.slice(0, eq).trim();
+      let val = line.slice(eq + 1).trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      if (key && process.env[key] === undefined) process.env[key] = val;
+    }
+    return file;
+  }
+  return null;
+}
+
+// Model fallback chain, measured on the free tier with a synthetic ID card:
+//   gemini-3.5-flash-lite   ~5s,  7/7 fields, clean JSON; 15/min, 500/day  (fast path)
+//   gemini-3.1-flash-lite   ~7s,  7/7 fields, clean JSON; 15/min, 500/day  (fast fallback)
+//   gemma-4-26b-a4b-it      60-80s, 7/7 fields, JSON behind a preamble; 14,400/day
+//                           (slow backstop once the lite quota is spent)
+// Full Gemini 3.x Flash is capped at 20 requests/day on this plan, Gemini 1.5/2.5
+// are retired for new keys, and the pro tier returns 429. Override with
+// GEMINI_MODELS="a,b,c". extractJson() below copes with any of these outputs.
+const DEFAULT_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemma-4-26b-a4b-it'];
+const GEMINI_MODELS = (process.env.GEMINI_MODELS || '')
+  .split(',')
+  .map((m) => m.trim())
+  .filter(Boolean);
+const MODELS = GEMINI_MODELS.length ? GEMINI_MODELS : DEFAULT_MODELS;
+
+const keyFromHostEnv = Boolean(process.env.GEMINI_API_KEY);
+const DOTENV_FILE = loadDotEnv();
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const KEY_SOURCE = !GEMINI_API_KEY ? null : keyFromHostEnv ? 'environment' : path.relative(process.cwd(), DOTENV_FILE);
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -100,9 +150,30 @@ Return STRICT JSON only:
 }
 `;
 
+// Models do not all honour response_mime_type. Accept a bare object, a fenced
+// ```json block, or an object preceded/followed by commentary.
+function extractJson(text) {
+  const raw = String(text || '').trim();
+  try {
+    return JSON.parse(raw);
+  } catch (_) {}
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced) {
+    try {
+      return JSON.parse(fenced[1]);
+    } catch (_) {}
+  }
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start !== -1 && end > start) {
+    return JSON.parse(raw.slice(start, end + 1));
+  }
+  throw new Error('no JSON object in model output');
+}
+
 function callGemini(base64Data, mimeType, modelIndex = 0, retries = 2, delay = 1500) {
-  const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'];
-  const modelName = models[modelIndex] || 'gemini-1.5-flash';
+  const models = MODELS;
+  const modelName = models[modelIndex] || models[0];
 
   return new Promise((resolve, reject) => {
     const postData = JSON.stringify({
@@ -144,24 +215,31 @@ function callGemini(base64Data, mimeType, modelIndex = 0, retries = 2, delay = 1
             if (res.statusCode >= 200 && res.statusCode < 300) {
               try {
                 const parsed = JSON.parse(body);
-                const text = parsed.candidates[0].content.parts[0].text;
-                const result = JSON.parse(text);
+                const parts = (parsed.candidates && parsed.candidates[0] && parsed.candidates[0].content && parsed.candidates[0].content.parts) || [];
+                const text = parts.map((p) => p.text || '').join('');
+                const result = extractJson(text);
+                result._model = modelName;
                 resolve(result);
               } catch (err) {
                 reject(new Error('فشل في تحليل بيانات الاستجابة: ' + err.message));
               }
             } else if ((res.statusCode === 503 || res.statusCode === 429) && attempt < retries) {
-              console.warn(`⚠️ الموديل ${modelName} مشغول (${res.statusCode}). إعادة المحاولة ${attempt + 1}/${retries}...`);
+              console.warn(`⚠️  Model ${modelName} is busy (${res.statusCode}). Retrying ${attempt + 1}/${retries}...`);
               setTimeout(() => {
                 executeRequest(attempt + 1, currentDelay * 2);
               }, currentDelay);
             } else {
-              console.error(`❌ فشل طلب Gemini (${modelName}) - الحالة: ${res.statusCode}:`, body.slice(0, 300));
+              console.error(`❌ Gemini request failed (${modelName}) - status ${res.statusCode}:`, body.slice(0, 300));
               if (modelIndex < models.length - 1) {
-                console.log(`🔄 الانتقال التلقائي للموديل البديل: ${models[modelIndex + 1]}...`);
+                console.log(`🔄 Falling back to next model: ${models[modelIndex + 1]}...`);
                 callGemini(base64Data, mimeType, modelIndex + 1, retries, delay)
                   .then(resolve)
                   .catch(reject);
+              } else if (res.statusCode === 404) {
+                console.error('All models in the chain returned 404. Check which models this key can use: GET /v1beta/models');
+                reject(new Error('نموذج الفحص غير متاح لهذا المفتاح. يرجى إبلاغ المسؤول عن المنصة.'));
+              } else if (res.statusCode === 429) {
+                reject(new Error('تم تجاوز حصة الاستخدام المتاحة حالياً. يرجى المحاولة لاحقاً.'));
               } else {
                 reject(new Error('الخدمة تشهد ضغطاً عالياً حالياً، يرجى إعادة المحاولة بعد ثوانٍ.'));
               }
@@ -172,7 +250,7 @@ function callGemini(base64Data, mimeType, modelIndex = 0, retries = 2, delay = 1
 
       req.on('error', (e) => {
         if (attempt < retries) {
-          console.warn(`⚠️ خطأ اتصالات. إعادة المحاولة ${attempt + 1}/${retries}...`);
+          console.warn(`⚠️  Network error. Retrying ${attempt + 1}/${retries}...`);
           setTimeout(() => {
             executeRequest(attempt + 1, currentDelay * 2);
           }, currentDelay);
@@ -200,8 +278,23 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Platform health check
+  if (req.url === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: true, geminiKeyConfigured: Boolean(GEMINI_API_KEY) }));
+    return;
+  }
+
   // API Endpoint for Fast Analysis
   if (req.url === '/api/analyze' && req.method === 'POST') {
+    if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY is not set - refusing to call Gemini.');
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({
+        error: 'مفتاح Gemini غير مهيأ على الخادم. يرجى ضبط متغير البيئة GEMINI_API_KEY.',
+      }));
+      return;
+    }
     let rawBody = '';
     req.on('data', (chunk) => (rawBody += chunk));
     req.on('end', async () => {
@@ -213,7 +306,7 @@ const server = http.createServer(async (req, res) => {
           return;
         }
 
-        console.log('🔍 بدء الفحص الذكي للوثيقة عبر Gemini...');
+        console.log('🔍 Starting document scan via Gemini...');
         const tStart = Date.now();
         const report = await callGemini(image, mimeType || 'image/jpeg');
 
@@ -259,12 +352,13 @@ const server = http.createServer(async (req, res) => {
         }
 
         const duration = ((Date.now() - tStart) / 1000).toFixed(1);
-        console.log(`✅ اكتمل الفحص في ${duration}s: تم رصد ${report.detections ? report.detections.length : 0} عناصر.`);
+        console.log(`✅ Scan completed in ${duration}s via ${report._model}: ${report.detections ? report.detections.length : 0} item(s) detected.`);
+        delete report._model;
 
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify(report));
       } catch (err) {
-        console.error('❌ خطأ في معالجة الفحص:', err.message);
+        console.error('❌ Scan handling error:', err.message);
         res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ error: err.message }));
       }
@@ -299,10 +393,14 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n======================================================`);
-  console.log(`🛡️  منصة تأكد (TAAKAD) تعمل بنجاح!`);
-  console.log(`🤖  محرك الفحص السيبراني الذكي متصل`);
-  console.log(`🔗  الرابط: http://localhost:${PORT}`);
+  console.log(`🛡️  TAAKAD platform is running`);
+  console.log(`🤖  Gemini scan engine: ${GEMINI_API_KEY ? 'key configured (from ' + KEY_SOURCE + ')' : 'NO KEY'}`);
+  console.log(`🔗  Listening on port ${PORT} (http://localhost:${PORT})`);
+  console.log(`🧠  Model chain: ${MODELS.join(' -> ')}${GEMINI_MODELS.length ? ' (from GEMINI_MODELS)' : ''}`);
+  if (!GEMINI_API_KEY) {
+    console.warn('⚠️  WARNING: GEMINI_API_KEY is not set - scans will fail until it is configured.');
+  }
   console.log(`======================================================\n`);
-});س
+});

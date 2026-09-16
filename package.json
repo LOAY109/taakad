@@ -1,0 +1,13 @@
+{
+  "name": "taakad-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "منصة تأكد (TAAKAD) — خادم الويب وواجهة الفحص والتعمية",
+  "main": "web/server.js",
+  "scripts": {
+    "start": "node web/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
