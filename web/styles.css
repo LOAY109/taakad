@@ -377,6 +377,13 @@ body {
   line-height: 1.35;
   text-wrap: balance;
 }
+.hero-title-en {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
 .hero-desc {
   font-size: 1.02rem;
   color: var(--text-secondary);
