@@ -110,30 +110,36 @@ npm start          # then GET / and GET /healthz
 There is no test suite. UI changes are verified by computation (WCAG contrast ratios, overflow
 arithmetic against padding chains) and by the user's phone screenshots.
 
-## State as of 2026-09-16: read this first
+## State as of 2026-09-18: read this first
 
-Nothing from this session is committed or pushed. `origin/main` still has the boot crash
-and the hard-coded key. Working tree:
+Everything from the 2026-09-16 session is committed and pushed to `origin/main`
+(`itsreallyhex/taakad`, the working fork — see remotes below). `upstream/main`
+(`LOAY109/taakad`) is still behind; a PR from the fork's `main` is how that work reaches it,
+since nobody pushes to `upstream` directly.
 
-| file | what's in the diff |
-| --- | --- |
-| `web/server.js` | boot-crash fix, env-only key, `.env` loader, `/healthz`, missing-key 500, `0.0.0.0` bind, English logs, model chain moved to flash-lite with Gemma backstop and `GEMINI_MODELS` override, tolerant `extractJson()`, 404/429-specific error messages |
-| `web/app.js` | keyboard-operable cards, ARIA and `aria-pressed` sync, modal focus management, toast rework, single file picker with `value` reset and error surfacing, `aria-current` on the stepper |
-| `web/index.html` | ARIA attributes, skip link, toast close button, `&nbsp;`-glued Latin tokens |
-| `web/styles.css` | contrast tokens, focus rings, 44px targets, reduced motion, 640/400px breakpoints, Arabic typography, toast geometry |
-| `package.json`, `.gitignore`, `.env.example` | new, for deployment support |
-| `.env` | the user's real key, gitignored; never stage it |
+Remotes: `origin` = `itsreallyhex/taakad` (push target, connected to Railway for deploy),
+`upstream` = `LOAY109/taakad` (the repo named at the top of this file; PRs go here).
 
-Owed by the user (only they can do these):
+Since then:
 
-1. Rotate the Gemini key. `AIzaSyDorl9…` is in public git history and must be treated as burned.
-2. Set `GEMINI_API_KEY` in the host dashboard.
-3. Commit and push. Suggested split: one commit for deployment (`server.js` plus the three new
-   root files), one for UI and accessibility (`app.js`, `index.html`, `styles.css`).
+- The burned key (`AIzaSyDorl9…`) has been rotated. The current `.env` key is a different
+  value/format; treat the old one as permanently dead regardless.
+- Hosting moved to **Railway**, not Vercel/Render. Project `taakad`, service `taakad-web`,
+  live at `https://taakad-web-production.up.railway.app`. `GEMINI_API_KEY` is set there and
+  `/healthz` returns `{"ok":true,"geminiKeyConfigured":true}`. A separate `taakad.vercel.app`
+  deployment exists but is broken: Vercel doesn't run a persistent `http.createServer().listen()`
+  process the way `server.js` is built (no `vercel.json`, no `api/` functions), so
+  `/api/analyze` 404s at the platform level even though the static page loads. Decommission it
+  or restructure into Vercel serverless functions — not yet decided.
+- Hero title changed: `web/index.html`'s `<h2 class="hero-title">` is now "منصة الشعلة تأكد"
+  (Arabic, `font-weight: 900`) with a new `.hero-title-en` line below it, "Shulah Platform
+  Confirm" (`font-weight: 500`, muted) — CSS in `web/styles.css`.
 
 Not done / known remaining:
 
+- No real end-to-end scan (upload → `/api/analyze` → Gemini) has been verified against the
+  Railway deployment yet, only `/healthz` and `GET /`.
 - The Flutter app is untouched: same interaction model, still mock-only, and it cannot build
   without `flutter create .`.
-- The latest fixes (double picker, toast, phone layout) are verified by code reading and boot
-  tests only, with no browser run.
+- The 2026-09-16 UI fixes (double picker, toast, phone layout) are still verified by code
+  reading and boot tests only, with no browser run.
