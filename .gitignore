@@ -1,0 +1,21 @@
+# Secrets — never commit the real key (the repo is public)
+.env
+.env.local
+*.env
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

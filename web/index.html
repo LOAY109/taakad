@@ -21,6 +21,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+  <a href="#mainContent" class="skip-link">تخطَّ إلى المحتوى الرئيسي</a>
+
   <!-- Ambient Cyber Glows -->
   <div class="ambient-glow glow-top"></div>
   <div class="ambient-glow glow-bottom"></div>
@@ -39,7 +41,7 @@
       <div class="header-actions">
         <button id="themeToggleBtn" class="theme-toggle-btn" title="تبديل وضع العرض (صباح / ليل)">
           <div class="theme-icon-wrap">
-            <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg aria-hidden="true" focusable="false" class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="5"></circle>
               <line x1="12" y1="1" x2="12" y2="3"></line>
               <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -50,7 +52,7 @@
               <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
-            <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg aria-hidden="true" focusable="false" class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
           </div>
@@ -61,23 +63,29 @@
   </header>
 
   <!-- In-App Floating Cyber Toast Notification -->
-  <div id="toastNotification" class="cyber-toast">
+  <div id="toastNotification" class="cyber-toast" role="status" aria-live="polite">
     <div class="toast-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/>
         <line x1="12" y1="8" x2="12" y2="12"/>
         <line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>
     </div>
     <span id="toastMessage">تنبيه النظام</span>
+    <button type="button" id="toastCloseBtn" class="toast-close" aria-label="إغلاق التنبيه">
+      <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
   </div>
 
   <!-- Main Container -->
-  <main class="main-content">
+  <main class="main-content" id="mainContent">
 
     <!-- Stepper Bar -->
     <div class="stepper-bar">
-      <div class="step-node active" id="nodeStep1">
+      <div class="step-node active" id="nodeStep1" aria-current="step">
         <span class="step-num">1</span>
         <span class="step-label">الفحص والرفع</span>
       </div>
@@ -102,15 +110,16 @@
           <span class="pulse-dot"></span>
           درع الخصوصية والأمن السيبراني للوثائق الرسمية
         </div>
-        <h2 class="hero-title">تأكد — قبل ما تشارك</h2>
+        <h2 class="hero-title">منصة الشعلة تأكد</h2>
+        <p class="hero-title-en">Shulah Platform Confirm</p>
         <p class="hero-desc">
-          اكشف فورياً عن أرقام الهويات الوطنية، الجوال، الحسابات البنكية (IBAN)، صورة الوجه، ورموز QR واحجبها بحقوق الحماية الرسمية قبل مشاركتها.
+          اكشف فورياً عن أرقام الهويات الوطنية، الجوال، الحسابات البنكية (IBAN)، صورة الوجه، ورموز QR واحجبها بحقوق الحماية الرسمية قبل مشاركتها.
         </p>
 
         <!-- Redesigned Cyber Scanner Upload Terminal -->
         <!-- Redesigned Cyber Scanner Upload Terminal -->
         <div class="upload-dropzone" id="dropZone">
-          <input type="file" id="fileInput" accept="image/*,.pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="file-hidden-input">
+          <input type="file" id="fileInput" aria-label="اختيار ملف الوثيقة للفحص" accept="image/*,.pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="file-hidden-input">
           <div class="scanner-frame-corner top-left"></div>
           <div class="scanner-frame-corner top-right"></div>
           <div class="scanner-frame-corner bottom-left"></div>
@@ -118,19 +127,19 @@
 
           <div class="dropzone-content">
             <div class="scanner-radar-icon">
-              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <svg aria-hidden="true" focusable="false" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <rect x="3" y="3" width="18" height="18" rx="3"/>
                 <circle cx="8.5" cy="8.5" r="1.5"/>
                 <polyline points="21 15 16 10 5 21"/>
               </svg>
             </div>
-            <h3>اسحب وأفلت صورة الوثيقة، أو ملف PDF أو مستند Word هنا</h3>
-            <p class="dropzone-hint">فحص فوري للبيانات الحساسة — يدعم صور الهويات (PNG, JPG)، مستندات PDF، وملفات Word (DOCX) مع تصدير PDF سليم</p>
+            <h3>اسحب وأفلت صورة الوثيقة، أو ملف PDF أو مستند Word هنا</h3>
+            <p class="dropzone-hint">فحص فوري للبيانات الحساسة — يدعم صور الهويات (PNG, JPG)، مستندات PDF، وملفات Word (DOCX) مع تصدير PDF سليم</p>
             <div class="file-type-tags">
-              <span class="type-tag">مستندات PDF</span>
-              <span class="type-tag">ملفات Word (DOCX)</span>
+              <span class="type-tag">مستندات PDF</span>
+              <span class="type-tag">ملفات Word (DOCX)</span>
               <span class="type-tag">صور البطاقات والهويات</span>
-              <span class="type-tag">تصدير PDF محمي</span>
+              <span class="type-tag">تصدير PDF محمي</span>
             </div>
           </div>
         </div>
@@ -141,7 +150,7 @@
           <div class="guide-card">
             <div class="guide-card-header">
               <div class="guide-icon-svg">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                   <polyline points="14 2 14 8 20 8"/>
                   <line x1="16" y1="13" x2="8" y2="13"/>
@@ -187,7 +196,7 @@
           <div class="guide-card purpose-highlight">
             <div class="guide-card-header">
               <div class="guide-icon-svg">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="10"/>
                   <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
                 </svg>
@@ -223,7 +232,7 @@
     <section id="step2Screen" class="screen-view">
       <div class="view-header">
         <button id="backToStep1Btn" class="btn-ghost-sm">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
           <span>رفع مستند آخر</span>
@@ -232,9 +241,9 @@
       </div>
 
       <!-- Warning Alert Banner -->
-      <div class="security-alert-banner" id="riskAlertBanner">
+      <div class="security-alert-banner" id="riskAlertBanner" role="status">
         <div class="alert-icon-wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
             <line x1="12" y1="9" x2="12" y2="13"/>
             <line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -259,13 +268,13 @@
           <div class="fine-tuning-toolbar">
             <div class="tool-btn-group">
               <button id="drawManualBoxBtn" class="btn-tool-action">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 5v14M5 12h14"/>
                 </svg>
                 <span>رسم صندوق حجب جديد</span>
               </button>
               <button id="deleteSelectedBoxBtn" class="btn-tool-action btn-danger" title="حذف الصندوق المحدد">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="3 6 5 6 21 6"/>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                 </svg>
@@ -280,18 +289,19 @@
           <!-- Multi-page Document Navigation Bar (Visible for multi-page PDFs) -->
           <div id="pdfPaginationBarStep2" class="pdf-pagination-bar" style="display: none;">
             <button id="prevPageBtnStep2" class="btn-page-nav" title="الصفحة السابقة">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
               <span>الصفحة السابقة</span>
             </button>
             <span class="page-indicator" id="pageIndicatorStep2">صفحة 1 من 1</span>
             <button id="nextPageBtnStep2" class="btn-page-nav" title="الصفحة التالية">
               <span>الصفحة التالية</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
 
           <div class="canvas-viewport" id="canvasViewport">
-            <canvas id="analysisCanvas"></canvas>
+            <canvas id="analysisCanvas" role="img"
+                      aria-label="معاينة الوثيقة مع صناديق تحديد البيانات الحساسة المكتشفة. القائمة المجاورة تعرض نفس العناصر بصيغة نصية."></canvas>
           </div>
           <p class="canvas-tip">يمكنك النقر على أي صندوق وسحبه لتغيير موضعه، أو سحب مقابض الزوايا لتكبيره وتصغيره.</p>
         </div>
@@ -301,7 +311,7 @@
           <!-- Educational Tooltip Banner -->
           <div class="educational-banner" id="educationalBanner">
             <div class="edu-icon-svg">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="12" y1="16" x2="12" y2="12"/>
                 <line x1="12" y1="8" x2="12.01" y2="8"/>
@@ -318,13 +328,13 @@
             <span class="hint-text">اختر العنصر للحجب</span>
           </div>
 
-          <div class="detection-cards-list" id="detectionCardsList">
+          <div class="detection-cards-list" id="detectionCardsList" role="group" aria-label="العناصر الحساسة المكتشفة">
             <!-- Dynamic Items rendered by app.js -->
           </div>
 
           <button id="goToProtectBtn" class="btn-primary-glow btn-block">
             <span>الانتقال لتخصيص الحجب والحماية</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="5" y1="12" x2="19" y2="12"/>
               <polyline points="12 5 19 12 12 19"/>
             </svg>
@@ -339,7 +349,7 @@
     <section id="step3Screen" class="screen-view">
       <div class="view-header">
         <button id="backToStep2Btn" class="btn-ghost-sm">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
           <span>العودة لنتائج الفحص</span>
@@ -352,15 +362,15 @@
         <div class="mode-selector-bar">
           <span class="selector-label">نمط الحجب الأساسي:</span>
           <div class="mode-pills">
-            <button class="mode-pill active" data-mode="blackout">
+            <button class="mode-pill active" data-mode="blackout" aria-pressed="true">
               <span class="pill-dot blackout-dot"></span>
               <span>شريط الحماية الأمني المشفر</span>
             </button>
-            <button class="mode-pill" data-mode="blur">
+            <button class="mode-pill" data-mode="blur" aria-pressed="false">
               <span class="pill-dot blur-dot"></span>
               <span>تمويه ضبابي</span>
             </button>
-            <button class="mode-pill" data-mode="pixelate">
+            <button class="mode-pill" data-mode="pixelate" aria-pressed="false">
               <span class="pill-dot pixelate-dot"></span>
               <span>بكسلة رقمية</span>
             </button>
@@ -375,11 +385,11 @@
             <div class="custom-row">
               <span class="custom-label">لون شريط الحجب:</span>
               <div class="color-swatches">
-                <button class="color-swatch active" data-color="#060A12" style="background:#060A12;" title="أسود كربوني"></button>
-                <button class="color-swatch" data-color="#0F172A" style="background:#0F172A;" title="كحلي سيبراني"></button>
-                <button class="color-swatch" data-color="#1E293B" style="background:#1E293B;" title="رمادي معدني"></button>
-                <button class="color-swatch" data-color="#450A0A" style="background:#450A0A;" title="أحمر أمني"></button>
-                <button class="color-swatch" data-color="#064E3B" style="background:#064E3B;" title="أخضر زمردي"></button>
+                <button type="button" aria-pressed="true" class="color-swatch active" data-color="#060A12" style="background:#060A12;" aria-label="لون الحجب: أسود كربوني"></button>
+                <button type="button" aria-pressed="false" class="color-swatch" data-color="#0F172A" style="background:#0F172A;" aria-label="لون الحجب: كحلي سيبراني"></button>
+                <button type="button" aria-pressed="false" class="color-swatch" data-color="#1E293B" style="background:#1E293B;" aria-label="لون الحجب: رمادي معدني"></button>
+                <button type="button" aria-pressed="false" class="color-swatch" data-color="#450A0A" style="background:#450A0A;" aria-label="لون الحجب: أحمر أمني"></button>
+                <button type="button" aria-pressed="false" class="color-swatch" data-color="#064E3B" style="background:#064E3B;" aria-label="لون الحجب: أخضر زمردي"></button>
                 <label class="color-picker-label" title="اختيار لون مخصص">
                   <span>مخصص</span>
                   <input type="color" id="customColorInput" value="#060A12">
@@ -390,18 +400,18 @@
             <div class="custom-row">
               <span class="custom-label">وسام وحقوق الحماية المطبوعة:</span>
               <div class="watermark-presets">
-                <button class="btn-preset-text active" data-text="محمي بواسطة تأكد | TAAKAD">محمي بواسطة تأكد</button>
-                <button class="btn-preset-text" data-text="بيانات سرية | CONFIDENTIAL">بيانات سرية</button>
-                <button class="btn-preset-text" data-text="نسخة غير صالحة للمعاملات">نسخة غير صالحة</button>
-                <button class="btn-preset-text" data-text="REDACTED | محجوب">محجوب REDACTED</button>
-                <button class="btn-preset-text" data-text="NONE">بدون نص (شريط صلب)</button>
+                <button type="button" aria-pressed="true" class="btn-preset-text active" data-text="محمي بواسطة تأكد | TAAKAD">محمي بواسطة تأكد</button>
+                <button type="button" aria-pressed="false" class="btn-preset-text" data-text="بيانات سرية | CONFIDENTIAL">بيانات سرية</button>
+                <button type="button" aria-pressed="false" class="btn-preset-text" data-text="نسخة غير صالحة للمعاملات">نسخة غير صالحة</button>
+                <button type="button" aria-pressed="false" class="btn-preset-text" data-text="REDACTED | محجوب">محجوب REDACTED</button>
+                <button type="button" aria-pressed="false" class="btn-preset-text" data-text="NONE">بدون نص (شريط صلب)</button>
               </div>
             </div>
 
             <div class="custom-row">
               <span class="custom-label">أو اكتب نصاً خاصاً بك:</span>
               <div class="custom-text-input-wrap">
-                <input type="text" id="customWatermarkTextInput" placeholder="اكتب الشعار أو النص المطلوب ظهوره داخل أشرطة الحجب..." class="custom-text-input">
+                <input type="text" id="customWatermarkTextInput" aria-label="نص مخصص يظهر داخل أشرطة الحجب" placeholder="اكتب الشعار أو النص المطلوب ظهوره داخل أشرطة الحجب..." class="custom-text-input">
                 <button id="applyCustomTextBtn" class="btn-tool-action">تطبيق النص</button>
               </div>
             </div>
@@ -416,7 +426,8 @@
               </div>
               <div class="slider-control-bar">
                 <span class="slider-end-label">خفيف</span>
-                <input type="range" id="blurIntensitySlider" min="8" max="55" value="22" class="cyber-range-slider">
+                <input type="range" id="blurIntensitySlider" min="8" max="55" value="22" class="cyber-range-slider"
+                       aria-label="شدة التمويه الضبابي بالبكسل">
                 <span class="slider-end-label">شديد جداً</span>
               </div>
               <p class="slider-tip-text">اسحب الشريط لتقوية أو تقليل كثافة التغبيش لإخفاء الملامح والبيانات بدقة فورية.</p>
@@ -432,7 +443,8 @@
               </div>
               <div class="slider-control-bar">
                 <span class="slider-end-label">ناعم</span>
-                <input type="range" id="pixelateSizeSlider" min="6" max="50" value="18" class="cyber-range-slider">
+                <input type="range" id="pixelateSizeSlider" min="6" max="50" value="18" class="cyber-range-slider"
+                       aria-label="حجم مربعات البكسلة بالبكسل">
                 <span class="slider-end-label">مربعات كبيرة</span>
               </div>
               <p class="slider-tip-text">اسحب الشريط للتحكم بحجم كتل البكسلة الرقمية لطمس الأحرف والوجوه.</p>
@@ -454,18 +466,19 @@
           <!-- Multi-page Document Navigation Bar in Step 3 -->
           <div id="pdfPaginationBarStep3" class="pdf-pagination-bar" style="display: none;">
             <button id="prevPageBtnStep3" class="btn-page-nav" title="الصفحة السابقة">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
               <span>الصفحة السابقة</span>
             </button>
             <span class="page-indicator" id="pageIndicatorStep3">صفحة 1 من 1</span>
             <button id="nextPageBtnStep3" class="btn-page-nav" title="الصفحة التالية">
               <span>الصفحة التالية</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
 
           <div class="canvas-viewport" id="redactionViewport">
-            <canvas id="redactionCanvas"></canvas>
+            <canvas id="redactionCanvas" role="img"
+                 aria-label="المعاينة النهائية للوثيقة بعد تطبيق الحجب على العناصر المحددة."></canvas>
           </div>
         </div>
 
@@ -479,7 +492,7 @@
               <button id="deselectAllBtn" class="btn-text-action">إلغاء حجب الكل</button>
             </div>
           </div>
-          <div class="elements-toggle-list" id="elementsToggleList">
+          <div class="elements-toggle-list" id="elementsToggleList" role="list" aria-label="العناصر المشمولة بالحجب">
             <!-- Dynamic checkboxes -->
           </div>
         </div>
@@ -487,24 +500,24 @@
         <!-- Export & Share Actions Floating Bar -->
         <div class="export-actions-bar">
           <button id="downloadProtectedPdfBtn" class="btn-primary-glow btn-large">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
               <polyline points="14 2 14 8 20 8"/>
               <line x1="12" y1="18" x2="12" y2="12"/>
               <line x1="9" y1="15" x2="15" y2="15"/>
             </svg>
-            <span>تحميل مستند PDF محمي وسليم</span>
+            <span>تحميل مستند PDF محمي وسليم</span>
           </button>
           <button id="downloadProtectedBtn" class="btn-secondary btn-large">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            <span>تحميل كصورة (PNG)</span>
+            <span>تحميل كصورة (PNG)</span>
           </button>
           <button id="shareSafeBtn" class="btn-tool-action">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="18" cy="5" r="3"/>
               <circle cx="6" cy="12" r="3"/>
               <circle cx="18" cy="19" r="3"/>
@@ -520,28 +533,29 @@
   </main>
 
   <!-- Real-Time Processing Modal with Stopwatch -->
-  <div class="scanning-modal-backdrop" id="scanningModal">
+  <div class="scanning-modal-backdrop" id="scanningModal" role="dialog" aria-modal="true"
+       aria-labelledby="scanModalTitle" aria-describedby="scanModalDesc">
     <div class="scanning-modal-card">
       <div class="scanning-radar-circle">
         <div class="radar-sweep"></div>
         <div class="radar-center-icon">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
+          <svg aria-hidden="true" focusable="false" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
       </div>
-      <h3 class="scan-modal-title">جاري الفحص السيبراني فائق السرعة</h3>
-      <p class="scan-modal-desc">يقوم الذكاء الاصطناعي برصد ومطابقة مواقع البيانات الحساسة بدقة لحظية.</p>
+      <h3 class="scan-modal-title" id="scanModalTitle">جاري الفحص السيبراني</h3>
+      <p class="scan-modal-desc" id="scanModalDesc">يقوم الذكاء الاصطناعي برصد ومطابقة مواقع البيانات الحساسة بدقة لحظية.</p>
 
       <!-- Real-Time Elapsed Timer -->
       <div class="realtime-timer-box">
         <span class="timer-caption">الوقت المستغرق:</span>
-        <span class="timer-digits" id="liveElapsedTimer">00:00.0</span>
+        <span class="timer-digits" id="liveElapsedTimer" aria-hidden="true">00:00.0</span>
       </div>
 
       <!-- Animated Progress Pulse Bar -->
       <div class="progress-wrap">
-        <div class="progress-track">
+        <div class="progress-track" role="progressbar" aria-label="جاري الفحص" aria-valuetext="جاري الفحص">
           <div class="progress-fill-pulsing" id="progressFill"></div>
         </div>
       </div>
@@ -554,7 +568,7 @@
         </div>
         <div class="scan-step-line" id="scanStep2">
           <span class="dot"></span>
-          <span>2. فحص محددات الهوية والوجه والباركود عبر Gemini 2.5</span>
+          <span>2. فحص محددات الهوية والوجه والباركود بالذكاء الاصطناعي</span>
         </div>
         <div class="scan-step-line" id="scanStep3">
           <span class="dot"></span>
